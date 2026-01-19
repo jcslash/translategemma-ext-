@@ -1,7 +1,7 @@
 // Background service worker for TranslateGemma extension
 // Handles API calls to Hugging Face TranslateGemma 4B model
 
-const HUGGINGFACE_API_URL = 'https://router.huggingface.co/models/google/translategemma-4b-it';
+const HUGGINGFACE_API_URL = 'https://router.huggingface.co/hf-inference/models/google/translategemma-4b-it';
 
 // Model-specific configuration for TranslateGemma
 const MODEL_CONFIG = {
@@ -109,8 +109,8 @@ async function translateText(text, sourceLang, targetLang, apiKey) {
     return text;
   }
 
-  // Build the prompt for TranslateGemma
-  const prompt = buildTranslatePrompt(text, sourceLang, targetLang);
+  // Build the messages for TranslateGemma chat format
+  const messages = buildTranslateMessages(text, sourceLang, targetLang);
 
   try {
     const response = await fetch(HUGGINGFACE_API_URL, {
@@ -120,17 +120,18 @@ async function translateText(text, sourceLang, targetLang, apiKey) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: prompt,
-        parameters: MODEL_CONFIG,
-        options: {
-          use_cache: false,  // Disable cache for faster initial response
-          wait_for_model: true
+        inputs: {
+          text: messages
+        },
+        parameters: {
+          max_new_tokens: 200
         }
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`API error (${response.status}):`, errorText);
       throw new Error(`API error (${response.status}): ${errorText}`);
     }
 
@@ -146,59 +147,85 @@ async function translateText(text, sourceLang, targetLang, apiKey) {
   }
 }
 
-function buildTranslatePrompt(text, sourceLang, targetLang) {
-  // TranslateGemma uses specific prompt format
-  // Format: <source_lang> sentence\n<target_lang>
-
+function buildTranslateMessages(text, sourceLang, targetLang) {
+  // TranslateGemma uses chat format with ISO language codes
   const langMap = {
-    'en': 'English',
-    'zh-TW': 'Traditional Chinese'
+    'en': 'en',
+    'zh-TW': 'zh-Hant'
   };
 
-  const source = langMap[sourceLang];
-  const target = langMap[targetLang];
+  const sourceCode = langMap[sourceLang] || 'en';
+  const targetCode = langMap[targetLang] || 'zh-Hant';
 
-  // Simple and direct prompt for TranslateGemma
-  return `Translate from ${source} to ${target}:\n\n${text}`;
+  // Use the TranslateGemma chat template format
+  return [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "source_lang_code": sourceCode,
+          "target_lang_code": targetCode,
+          "text": text
+        }
+      ]
+    }
+  ];
 }
 
 function extractTranslation(apiResult, originalText) {
   try {
+    // Handle array response format
     if (Array.isArray(apiResult) && apiResult.length > 0) {
-      const generatedText = apiResult[0].generated_text || apiResult[0].translation_text;
+      const firstResult = apiResult[0];
 
-      if (generatedText) {
-        // Clean up the output
-        let translation = generatedText;
-
-        // Remove the original prompt if it's repeated
-        const promptMarkers = [
-          'Translate from',
-          'English to Traditional Chinese:',
-          'Traditional Chinese to English:',
-          originalText
-        ];
-
-        for (const marker of promptMarkers) {
-          const markerIndex = translation.indexOf(marker);
-          if (markerIndex !== -1) {
-            translation = translation.substring(markerIndex + marker.length);
+      // Try different response formats
+      if (firstResult.generated_text) {
+        // Format 1: generated_text array (chat format)
+        if (Array.isArray(firstResult.generated_text)) {
+          // Find the assistant's response
+          for (const message of firstResult.generated_text) {
+            if (message.role === 'assistant' && message.content) {
+              return message.content.trim();
+            }
           }
+          // If no assistant role, take the last message content
+          const lastMessage = firstResult.generated_text[firstResult.generated_text.length - 1];
+          if (lastMessage && lastMessage.content) {
+            return lastMessage.content.trim();
+          }
+        } else if (typeof firstResult.generated_text === 'string') {
+          // Format 2: generated_text string
+          return firstResult.generated_text.trim();
         }
+      }
 
-        // Clean up whitespace and newlines
-        translation = translation.trim();
+      // Format 3: translation_text field
+      if (firstResult.translation_text) {
+        return firstResult.translation_text.trim();
+      }
 
-        // If translation is empty after cleanup, return original
-        if (translation.length === 0) {
-          return originalText;
-        }
+      // Format 4: direct content field
+      if (firstResult.content) {
+        return firstResult.content.trim();
+      }
+    }
 
-        return translation;
+    // Single object response
+    if (apiResult && typeof apiResult === 'object') {
+      if (apiResult.generated_text) {
+        return apiResult.generated_text.trim();
+      }
+      if (apiResult.translation_text) {
+        return apiResult.translation_text.trim();
+      }
+      if (apiResult.content) {
+        return apiResult.content.trim();
       }
     }
 
     // Fallback to original text if extraction fails
+    console.warn('Could not extract translation, using original text');
     return originalText;
 
   } catch (error) {
