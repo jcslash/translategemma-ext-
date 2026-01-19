@@ -1,7 +1,7 @@
 // Background service worker for TranslateGemma extension
 // Handles API calls to Hugging Face TranslateGemma 4B model
 
-const HUGGINGFACE_API_URL = 'https://api-inference.huggingface.co/models/google/translategemma-4b-it';
+const HUGGINGFACE_API_URL = 'https://router.huggingface.co/models/google/translategemma-4b-it';
 
 // Model-specific configuration for TranslateGemma
 const MODEL_CONFIG = {
