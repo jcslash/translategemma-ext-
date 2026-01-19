@@ -42,23 +42,17 @@ document.getElementById('restoreOriginal').addEventListener('click', async () =>
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   // Check if we can access this page
-  if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
+  if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
     showStatus('Cannot access browser internal pages', 'error');
     return;
   }
 
-  // Inject content script if needed
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content.js']
-    });
-  } catch (injectError) {
-    console.log('Content script may already be injected:', injectError);
+  // Ensure content script is loaded
+  const scriptReady = await ensureContentScript(tab.id);
+  if (!scriptReady) {
+    showStatus('Failed to initialize. Please refresh the page.', 'error');
+    return;
   }
-
-  // Wait a moment for script to initialize
-  await new Promise(resolve => setTimeout(resolve, 100));
 
   chrome.tabs.sendMessage(tab.id, {
     action: 'restoreOriginal'
@@ -73,6 +67,31 @@ document.getElementById('restoreOriginal').addEventListener('click', async () =>
     }
   });
 });
+
+async function ensureContentScript(tabId) {
+  // Try to ping the content script first
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, { action: 'ping' }, (response) => {
+      if (chrome.runtime.lastError) {
+        // Content script not loaded, inject it
+        console.log('Content script not found, injecting...');
+        chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ['content.js']
+        }).then(() => {
+          console.log('Content script injected successfully');
+          setTimeout(() => resolve(true), 200);
+        }).catch((error) => {
+          console.error('Failed to inject content script:', error);
+          resolve(false);
+        });
+      } else {
+        console.log('Content script already available');
+        resolve(true);
+      }
+    });
+  });
+}
 
 async function translatePage(sourceLang, targetLang) {
   // Disable buttons during translation
@@ -93,7 +112,7 @@ async function translatePage(sourceLang, targetLang) {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     // Check if we can access this page
-    if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
+    if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:')) {
       showStatus('Cannot translate browser internal pages', 'error');
       disableButtons(false);
       return;
@@ -101,19 +120,13 @@ async function translatePage(sourceLang, targetLang) {
 
     const startTime = Date.now();
 
-    // Inject content script dynamically to ensure it's available
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js']
-      });
-    } catch (injectError) {
-      console.log('Content script may already be injected:', injectError);
-      // Continue anyway - script might already be there
+    // Ensure content script is loaded
+    const scriptReady = await ensureContentScript(tab.id);
+    if (!scriptReady) {
+      showStatus('Failed to initialize translation. Please refresh the page.', 'error');
+      disableButtons(false);
+      return;
     }
-
-    // Wait a moment for script to initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Send message to content script to extract text
     chrome.tabs.sendMessage(tab.id, {

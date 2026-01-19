@@ -1,12 +1,17 @@
 // Content script for TranslateGemma extension
 // Handles text extraction and replacement in web pages
 
-// Prevent duplicate initialization
-if (window.hasOwnProperty('translateGemmaInitialized')) {
-  console.log('TranslateGemma content script already initialized');
-} else {
+(function() {
+  'use strict';
+
+  // Check if already initialized
+  if (window.translateGemmaInitialized) {
+    console.log('TranslateGemma content script already initialized');
+    return;
+  }
+
   window.translateGemmaInitialized = true;
-  console.log('TranslateGemma content script initialized');
+  console.log('TranslateGemma content script initializing...');
 
   // Store original content for restoration
   const originalContent = new Map();
@@ -32,16 +37,30 @@ if (window.hasOwnProperty('translateGemmaInitialized')) {
 
   // Listen for messages from popup
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'extractText') {
-      const texts = extractTexts();
-      sendResponse({ texts });
-    } else if (request.action === 'replaceText') {
-      const success = replaceTexts(request.translations);
-      sendResponse({ success });
-    } else if (request.action === 'restoreOriginal') {
-      const success = restoreOriginal();
-      sendResponse({ success });
+    console.log('TranslateGemma received message:', request.action);
+
+    try {
+      if (request.action === 'ping') {
+        // Simple ping to check if content script is loaded
+        sendResponse({ ready: true });
+      } else if (request.action === 'extractText') {
+        const texts = extractTexts();
+        console.log('Extracted texts:', texts.length);
+        sendResponse({ texts });
+      } else if (request.action === 'replaceText') {
+        const success = replaceTexts(request.translations);
+        console.log('Replace texts success:', success);
+        sendResponse({ success });
+      } else if (request.action === 'restoreOriginal') {
+        const success = restoreOriginal();
+        console.log('Restore original success:', success);
+        sendResponse({ success });
+      }
+    } catch (error) {
+      console.error('Error handling message:', error);
+      sendResponse({ error: error.message });
     }
+
     return true;
   });
 
@@ -202,29 +221,6 @@ if (window.hasOwnProperty('translateGemmaInitialized')) {
     }
   }
 
-  // Optional: Add visual indicator when translation is active
-  function addTranslationIndicator() {
-    const indicator = document.createElement('div');
-    indicator.id = 'translategemma-indicator';
-    indicator.style.cssText = `
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: rgba(102, 126, 234, 0.9);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      z-index: 999999;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    `;
-    indicator.textContent = '🌐 TranslateGemma Active';
-    document.body.appendChild(indicator);
+  console.log('TranslateGemma content script ready');
 
-    setTimeout(() => {
-      indicator.remove();
-    }, 3000);
-  }
-}
+})();
