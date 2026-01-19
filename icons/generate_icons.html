@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Icon Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f0f0;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      margin: 10px;
+      background: white;
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>TranslateGemma Icon Generator</h1>
+  <p>Right-click on each icon and save as PNG</p>
+  <div class="container">
+    <div>
+      <h3>16x16</h3>
+      <canvas id="icon16" width="16" height="16"></canvas>
+    </div>
+    <div>
+      <h3>48x48</h3>
+      <canvas id="icon48" width="48" height="48"></canvas>
+    </div>
+    <div>
+      <h3>128x128</h3>
+      <canvas id="icon128" width="128" height="128"></canvas>
+    </div>
+  </div>
+
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+
+      // Background gradient
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#667eea');
+      gradient.addColorStop(1, '#764ba2');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      // Draw translation symbol (two arrows)
+      ctx.strokeStyle = 'white';
+      ctx.fillStyle = 'white';
+      ctx.lineWidth = size / 16;
+
+      const centerX = size / 2;
+      const centerY = size / 2;
+      const arrowSize = size / 3;
+
+      // Top arrow (pointing right)
+      ctx.beginPath();
+      ctx.moveTo(centerX - arrowSize / 2, centerY - arrowSize / 4);
+      ctx.lineTo(centerX + arrowSize / 2, centerY - arrowSize / 4);
+      ctx.lineTo(centerX + arrowSize / 3, centerY - arrowSize / 2);
+      ctx.moveTo(centerX + arrowSize / 2, centerY - arrowSize / 4);
+      ctx.lineTo(centerX + arrowSize / 3, centerY);
+      ctx.stroke();
+
+      // Bottom arrow (pointing left)
+      ctx.beginPath();
+      ctx.moveTo(centerX + arrowSize / 2, centerY + arrowSize / 4);
+      ctx.lineTo(centerX - arrowSize / 2, centerY + arrowSize / 4);
+      ctx.lineTo(centerX - arrowSize / 3, centerY + arrowSize / 2);
+      ctx.moveTo(centerX - arrowSize / 2, centerY + arrowSize / 4);
+      ctx.lineTo(centerX - arrowSize / 3, centerY);
+      ctx.stroke();
+    }
+
+    // Generate all icon sizes
+    drawIcon(document.getElementById('icon16'));
+    drawIcon(document.getElementById('icon48'));
+    drawIcon(document.getElementById('icon128'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TranslateGemma Translator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌐 TranslateGemma</h1>
+      <p class="subtitle">Fast AI-Powered Translation</p>
+    </div>
+
+    <div class="settings">
+      <div class="api-key-section">
+        <label for="apiKey">Hugging Face API Key:</label>
+        <div class="input-group">
+          <input type="password" id="apiKey" placeholder="hf_...">
+          <button id="saveKey" class="btn-small">Save</button>
+        </div>
+        <p class="hint">Get your free API key at <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co</a></p>
+      </div>
+    </div>
+
+    <div class="translation-options">
+      <button id="translateToZh" class="btn-translate">
+        <span class="btn-icon">🇹🇼</span>
+        <span class="btn-text">Translate to Traditional Chinese</span>
+      </button>
+
+      <button id="translateToEn" class="btn-translate">
+        <span class="btn-icon">🇺🇸</span>
+        <span class="btn-text">Translate to English</span>
+      </button>
+
+      <button id="restoreOriginal" class="btn-secondary">
+        <span class="btn-icon">↩️</span>
+        <span class="btn-text">Restore Original</span>
+      </button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
