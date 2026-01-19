@@ -41,6 +41,25 @@ document.getElementById('translateToEn').addEventListener('click', async () => {
 document.getElementById('restoreOriginal').addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
+  // Check if we can access this page
+  if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
+    showStatus('Cannot access browser internal pages', 'error');
+    return;
+  }
+
+  // Inject content script if needed
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content.js']
+    });
+  } catch (injectError) {
+    console.log('Content script may already be injected:', injectError);
+  }
+
+  // Wait a moment for script to initialize
+  await new Promise(resolve => setTimeout(resolve, 100));
+
   chrome.tabs.sendMessage(tab.id, {
     action: 'restoreOriginal'
   }, (response) => {
@@ -73,14 +92,36 @@ async function translatePage(sourceLang, targetLang) {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
+    // Check if we can access this page
+    if (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
+      showStatus('Cannot translate browser internal pages', 'error');
+      disableButtons(false);
+      return;
+    }
+
     const startTime = Date.now();
+
+    // Inject content script dynamically to ensure it's available
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js']
+      });
+    } catch (injectError) {
+      console.log('Content script may already be injected:', injectError);
+      // Continue anyway - script might already be there
+    }
+
+    // Wait a moment for script to initialize
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Send message to content script to extract text
     chrome.tabs.sendMessage(tab.id, {
       action: 'extractText'
     }, async (response) => {
       if (chrome.runtime.lastError) {
-        showStatus('Error: Cannot access this page', 'error');
+        showStatus('Error: Cannot access this page. Please refresh and try again.', 'error');
+        console.error('Message error:', chrome.runtime.lastError);
         disableButtons(false);
         return;
       }
