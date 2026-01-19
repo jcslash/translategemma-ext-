@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TranslateGemma Extension Test Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #667eea;
+      border-bottom: 3px solid #764ba2;
+      padding-bottom: 10px;
+    }
+    .section {
+      background: #f8f9fa;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    .english {
+      background: #e3f2fd;
+      border-left-color: #2196f3;
+    }
+    .chinese {
+      background: #fce4ec;
+      border-left-color: #e91e63;
+    }
+    code {
+      background: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    .instruction {
+      background: #fff3cd;
+      border-left-color: #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌐 TranslateGemma Extension Test Page</h1>
+
+  <div class="instruction">
+    <h3>📋 測試步驟：</h3>
+    <ol>
+      <li>確保您已經在插件中保存了 Hugging Face API Key</li>
+      <li>點擊瀏覽器工具欄中的 TranslateGemma 插件圖標</li>
+      <li>選擇「Translate to Traditional Chinese」測試英文翻譯</li>
+      <li>點擊「Restore Original」恢復原文</li>
+      <li>選擇「Translate to English」測試中文翻譯</li>
+    </ol>
+  </div>
+
+  <div class="section english">
+    <h2>English Content Section</h2>
+    <p>Welcome to the TranslateGemma extension test page. This page contains various English text elements that should be translated to Traditional Chinese.</p>
+    <p>The extension uses Google's TranslateGemma 4B model, which is a state-of-the-art translation system supporting 55 languages.</p>
+    <p>Here are some common phrases:</p>
+    <ul>
+      <li>Hello, how are you?</li>
+      <li>Thank you very much!</li>
+      <li>Where is the nearest restaurant?</li>
+      <li>I love programming and technology.</li>
+      <li>Artificial intelligence is changing the world.</li>
+    </ul>
+  </div>
+
+  <div class="section chinese">
+    <h2>繁體中文內容區塊</h2>
+    <p>歡迎來到 TranslateGemma 插件測試頁面。這個頁面包含各種繁體中文文本元素，應該被翻譯成英文。</p>
+    <p>這個插件使用 Google 的 TranslateGemma 4B 模型，這是一個支援 55 種語言的最先進翻譯系統。</p>
+    <p>以下是一些常用短語：</p>
+    <ul>
+      <li>你好，你好嗎？</li>
+      <li>非常感謝！</li>
+      <li>最近的餐廳在哪裡？</li>
+      <li>我熱愛編程和科技。</li>
+      <li>人工智能正在改變世界。</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Technical Information</h2>
+    <p><strong>Model:</strong> TranslateGemma 4B</p>
+    <p><strong>API Provider:</strong> Hugging Face Inference API</p>
+    <p><strong>Supported Directions:</strong></p>
+    <ul>
+      <li>English → Traditional Chinese (en → zh-TW)</li>
+      <li>Traditional Chinese → English (zh-TW → en)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Interactive Elements</h2>
+    <p>The extension should also translate interactive elements:</p>
+    <button title="Click me">Button with Title</button>
+    <input type="text" placeholder="Type something here">
+    <br><br>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23667eea'/%3E%3Ctext x='50' y='50' text-anchor='middle' dy='.3em' fill='white' font-size='40'%3E🌐%3C/text%3E%3C/svg%3E" alt="Translation icon" title="This is an icon">
+  </div>
+
+  <div class="instruction">
+    <h3>🔍 如果仍然無法工作，請檢查：</h3>
+    <ol>
+      <li>按 <code>F12</code> 打開開發者工具</li>
+      <li>切換到 <strong>Console</strong> 標籤</li>
+      <li>點擊翻譯按鈕</li>
+      <li>查看是否有 <span style="color: red;">紅色錯誤信息</span></li>
+      <li>特別注意來自 <code>content.js</code>、<code>popup.js</code> 或 <code>background.js</code> 的錯誤</li>
+    </ol>
+    <p><strong>應該看到的日誌：</strong></p>
+    <ul>
+      <li>✅ "TranslateGemma content script initializing..."</li>
+      <li>✅ "TranslateGemma content script ready"</li>
+      <li>✅ "TranslateGemma received message: extractText"</li>
+      <li>✅ "Extracted texts: [數字]"</li>
+    </ul>
+  </div>
+
+  <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; text-align: center;">
+    <p>TranslateGemma Extension Test Page | <a href="https://github.com" style="color: #667eea;">GitHub</a></p>
+  </footer>
+</body>
+</html>
